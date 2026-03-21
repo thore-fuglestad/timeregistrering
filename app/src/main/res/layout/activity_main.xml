@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- ===== HEADER ===== -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        android:padding="16dp">
+
+        <!-- Dato og klokke (venstre side) -->
+        <LinearLayout
+            android:id="@+id/layoutDatoKlokke"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerVertical="true">
+
+            <!-- Ukedag og dato, f.eks. "Lørdag 21. mars 2026" -->
+            <TextView
+                android:id="@+id/tvDato"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:text=""/>
+
+            <!-- Klokkeslett: stort + sekunder -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom">
+
+                <!-- Timer og minutter, f.eks. "20:04" -->
+                <TextView
+                    android:id="@+id/tvKlokke"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#FFFFFF"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:text=""/>
+
+                <!-- Sekunder i litt mindre skrift -->
+                <TextView
+                    android:id="@+id/tvSekunder"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#CCFFFFFF"
+                    android:textSize="22sp"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginBottom="8dp"
+                    android:text=""/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Knapper øvre høyre hjørne -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:id="@+id/btnInnstillinger"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_settings"
+                android:contentDescription="Innstillinger"/>
+
+            <ImageButton
+                android:id="@+id/btnStatistikk"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_statistics"
+                android:contentDescription="Statistikk"/>
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <!-- ===== INNHOLD ===== -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:padding="16dp">
+
+        <!-- Stor Start/Stopp-knapp -->
+        <Button
+            android:id="@+id/btnToggleDay"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="Start dag"
+            android:textSize="18sp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Manuell registrering -->
+        <Button
+            android:id="@+id/btnManualEntry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Manuell registrering"
+            android:layout_marginBottom="12dp"/>
+
+        <!-- Fire statistikkort -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <!-- DAG -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFilterDag"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="4dp"
+                android:clickable="true" android:focusable="true"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="6dp" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="DAG" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:id="@+id/btnPrevDag" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="◄"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                        <TextView android:id="@+id/tvPeriodeDag" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:textSize="9sp"
+                            android:textColor="#FFFFFF" android:text="-" android:paddingStart="2dp" android:paddingEnd="2dp"/>
+                        <TextView android:id="@+id/btnNextDag" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="►"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                    </LinearLayout>
+                    <TextView android:id="@+id/tvSumDag" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp"
+                        android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- UKE -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFilterUke"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="4dp"
+                android:clickable="true" android:focusable="true"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="6dp" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="UKE" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:id="@+id/btnPrevUke" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="◄"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                        <TextView android:id="@+id/tvPeriodeUke" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:textSize="9sp"
+                            android:textColor="#FFFFFF" android:text="-" android:paddingStart="2dp" android:paddingEnd="2dp"/>
+                        <TextView android:id="@+id/btnNextUke" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="►"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                    </LinearLayout>
+                    <TextView android:id="@+id/tvSumUke" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp"
+                        android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- MND -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFilterMnd"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="4dp"
+                android:clickable="true" android:focusable="true"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="6dp" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="MND" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:id="@+id/btnPrevMnd" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="◄"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                        <TextView android:id="@+id/tvPeriodeMnd" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:textSize="9sp"
+                            android:textColor="#FFFFFF" android:text="-" android:paddingStart="2dp" android:paddingEnd="2dp"/>
+                        <TextView android:id="@+id/btnNextMnd" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="►"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                    </LinearLayout>
+                    <TextView android:id="@+id/tvSumMnd" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp"
+                        android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ÅR -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardFilterAr"
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:clickable="true" android:focusable="true"
+                app:cardCornerRadius="12dp" app:cardElevation="2dp">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:padding="6dp" android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="ÅR" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:orientation="horizontal" android:gravity="center_vertical">
+                        <TextView android:id="@+id/btnPrevAr" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="◄"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                        <TextView android:id="@+id/tvPeriodeAr" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:textSize="9sp"
+                            android:textColor="#FFFFFF" android:text="-" android:paddingStart="2dp" android:paddingEnd="2dp"/>
+                        <TextView android:id="@+id/btnNextAr" android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" android:text="►"
+                            android:textSize="10sp" android:textColor="#FFFFFF" android:padding="2dp"
+                            android:clickable="true" android:focusable="true"
+                            android:background="?attr/selectableItemBackgroundBorderless"/>
+                    </LinearLayout>
+                    <TextView android:id="@+id/tvSumAr" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp"
+                        android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Liste over registreringer -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"/>
+
+    </LinearLayout>
+
+</LinearLayout>

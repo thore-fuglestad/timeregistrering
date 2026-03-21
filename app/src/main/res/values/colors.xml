@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Hovedfarger -->
+    <color name="colorPrimary">#1A237E</color>       <!-- Mørkeblå -->
+    <color name="colorPrimaryVariant">#283593</color> <!-- Litt lysere blå -->
+    <color name="colorOnPrimary">#FFFFFF</color>      <!-- Tekst på blå knapper -->
+
+    <!-- Bakgrunner -->
+    <color name="colorBackground">#FFFFFF</color>     <!-- Ren hvit bakgrunn -->
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorCardBackground">#F5F5F5</color> <!-- Lysegrå kortbakgrunn -->
+
+    <!-- Tekst -->
+    <color name="colorOnBackground">#212121</color>   <!-- Nesten svart brødtekst -->
+    <color name="colorOnSurface">#212121</color>
+
+    <!-- Knappfarger for start/stopp -->
+    <color name="colorStartGreen">#2E7D32</color>
+    <color name="colorStoppRed">#C62828</color>
+
+    <!-- Farger for de fire filterkortene -->
+    <color name="colorKortDag">#1565C0</color>   <!-- Blå -->
+    <color name="colorKortUke">#2E7D32</color>   <!-- Grønn -->
+    <color name="colorKortMnd">#E65100</color>   <!-- Oransje -->
+    <color name="colorKortAr">#6A1B9A</color>    <!-- Lilla -->
+</resources>
