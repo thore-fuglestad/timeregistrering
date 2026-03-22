@@ -58,11 +58,10 @@ public class WorkDayAdapter extends RecyclerView.Adapter<WorkDayAdapter.ViewHold
             long min   = minutter % 60;
             holder.tvVarighet.setText(timer + " t " + min + " min");
 
-            // Hent normal arbeidstid og beregn avvik
+            // Hent normal arbeidstid for denne kategorien og beregn avvik
             SharedPreferences prefs = context.getSharedPreferences(
                     SettingsActivity.PREFS_NAME, Context.MODE_PRIVATE);
-            long normalMinutter = prefs.getInt(
-                    SettingsActivity.KEY_NORMAL_MINUTTER, SettingsActivity.STANDARD_MINUTTER);
+            long normalMinutter = SettingsActivity.getNormalMinutter(prefs, dag.category);
 
             long avvik = minutter - normalMinutter;
             if (avvik == 0) {
@@ -73,6 +72,18 @@ public class WorkDayAdapter extends RecyclerView.Adapter<WorkDayAdapter.ViewHold
                 holder.tvAvvik.setText(tekst);
                 holder.tvAvvik.setTextColor(avvik > 0 ? Color.parseColor("#2E7D32") : Color.parseColor("#C62828"));
             }
+        }
+
+        if (dag.category != null && !dag.category.isEmpty()) {
+            holder.tvKategori.setText(dag.category);
+            holder.tvKategori.setVisibility(android.view.View.VISIBLE);
+            if (dag.category.equals("Privat")) {
+                holder.tvKategori.setTextColor(Color.parseColor("#2E7D32"));
+            } else {
+                holder.tvKategori.setTextColor(Color.parseColor("#1565C0"));
+            }
+        } else {
+            holder.tvKategori.setVisibility(android.view.View.GONE);
         }
 
         holder.btnRediger.setOnClickListener(v -> {
@@ -126,7 +137,7 @@ public class WorkDayAdapter extends RecyclerView.Adapter<WorkDayAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvDato, tvTidsrom, tvVarighet, tvAvvik;
+        TextView tvDato, tvTidsrom, tvVarighet, tvAvvik, tvKategori;
         ImageButton btnRediger, btnSlett;
 
         ViewHolder(View view) {
@@ -135,6 +146,7 @@ public class WorkDayAdapter extends RecyclerView.Adapter<WorkDayAdapter.ViewHold
             tvTidsrom  = view.findViewById(R.id.tvTidsrom);
             tvVarighet = view.findViewById(R.id.tvVarighet);
             tvAvvik    = view.findViewById(R.id.tvAvvik);
+            tvKategori = view.findViewById(R.id.tvKategori);
             btnRediger = view.findViewById(R.id.btnRediger);
             btnSlett   = view.findViewById(R.id.btnSlett);
         }

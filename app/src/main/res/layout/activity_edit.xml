@@ -62,6 +62,20 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="numberSigned"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Kategori"
+        android:textStyle="bold"/>
+
+    <Spinner
+        android:id="@+id/spinnerKategori"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/kategorier"
+        android:background="@drawable/spinner_background"
         android:layout_marginBottom="24dp"/>
 
     <Button

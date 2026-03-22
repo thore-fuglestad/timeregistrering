@@ -53,6 +53,18 @@ public interface WorkDayDao {
     @Query("DELETE FROM work_days WHERE date BETWEEN :startDato AND :sluttDato")
     void slettAlleIDatoIntervall(String startDato, String sluttDato);
 
+    // Henter alle arbeidsdager for en gitt kategori
+    @Query("SELECT * FROM work_days WHERE category = :kategori ORDER BY startTime DESC")
+    List<WorkDay> getByCategory(String kategori);
+
+    // Henter arbeidsdager for en dato, filtrert på kategori
+    @Query("SELECT * FROM work_days WHERE date = :dato AND category = :kategori ORDER BY startTime DESC")
+    List<WorkDay> getByDateAndCategory(String dato, String kategori);
+
+    // Henter arbeidsdager i et datointervall, filtrert på kategori
+    @Query("SELECT * FROM work_days WHERE date BETWEEN :startDato AND :sluttDato AND category = :kategori ORDER BY startTime DESC")
+    List<WorkDay> getByDateRangeAndCategory(String startDato, String sluttDato, String kategori);
+
     // Sletter alle vakter i databasen
     @Query("DELETE FROM work_days")
     void slettAlt();

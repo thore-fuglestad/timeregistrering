@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -41,10 +44,13 @@ public class StatisticsActivity extends AppCompatActivity {
     private final Locale norsk = new Locale("no", "NO");
 
     private RecyclerView recycler;
+    private Spinner spinnerKategori;
+    private TabLayout tabLayout;
     private List<StatistikkRad> ukeRader = new ArrayList<>();
     private List<StatistikkRad> mndRader = new ArrayList<>();
     private List<StatistikkRad> arRader  = new ArrayList<>();
     private long normalMinutter;
+    private android.content.SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,28 +63,59 @@ public class StatisticsActivity extends AppCompatActivity {
         recycler = findViewById(R.id.recyclerStatistikk);
         recycler.setLayoutManager(new LinearLayoutManager(this));
 
-        TabLayout tabLayout = findViewById(R.id.tabLayout);
+        tabLayout = findViewById(R.id.tabLayout);
         tabLayout.addTab(tabLayout.newTab().setText("Uke"));
         tabLayout.addTab(tabLayout.newTab().setText("Måned"));
         tabLayout.addTab(tabLayout.newTab().setText("År"));
 
-        SharedPreferences prefs = getSharedPreferences(
-                SettingsActivity.PREFS_NAME, Context.MODE_PRIVATE);
-        normalMinutter = prefs.getInt(
-                SettingsActivity.KEY_NORMAL_MINUTTER, SettingsActivity.STANDARD_MINUTTER);
+        prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, Context.MODE_PRIVATE);
+        normalMinutter = SettingsActivity.getNormalMinutter(prefs, "Jobb"); // oppdateres ved filter-valg
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<WorkDay> alle = AppDatabase.getInstance(this).workDayDao().getAllWorkDays();
-            ukeRader = byggUkeStatistikk(alle);
-            mndRader = byggMndStatistikk(alle);
-            arRader  = byggArStatistikk(alle);
-            runOnUiThread(() -> visTab(tabLayout.getSelectedTabPosition()));
+        spinnerKategori = findViewById(R.id.spinnerKategori);
+        ArrayAdapter<CharSequence> katAdapter = ArrayAdapter.createFromResource(
+                this, R.array.kategorier_filter, android.R.layout.simple_spinner_item);
+        katAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerKategori.setAdapter(katAdapter);
+
+        // Restore lagret kategori
+        String lagretKat = prefs.getString(SettingsActivity.KEY_VALGT_KATEGORI, "Alle");
+        int lagretPos = katAdapter.getPosition(lagretKat);
+        if (lagretPos >= 0) spinnerKategori.setSelection(lagretPos);
+
+        spinnerKategori.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                prefs.edit()
+                        .putString(SettingsActivity.KEY_VALGT_KATEGORI, parent.getItemAtPosition(position).toString())
+                        .apply();
+                lastInnStatistikk();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        // Første lasting trigges av spinnerens onItemSelected
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override public void onTabSelected(TabLayout.Tab tab) { visTab(tab.getPosition()); }
             @Override public void onTabUnselected(TabLayout.Tab tab) {}
             @Override public void onTabReselected(TabLayout.Tab tab) {}
+        });
+    }
+
+    private void lastInnStatistikk() {
+        String valg = spinnerKategori.getSelectedItem().toString();
+        String kat = valg.equals("Alle") ? null : valg;
+        // Bruk Jobb-normal som referanselinje når "Alle" er valgt
+        normalMinutter = kat != null
+                ? SettingsActivity.getNormalMinutter(prefs, kat)
+                : SettingsActivity.getNormalMinutter(prefs, "Jobb");
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<WorkDay> alle = kat == null
+                    ? AppDatabase.getInstance(this).workDayDao().getAllWorkDays()
+                    : AppDatabase.getInstance(this).workDayDao().getByCategory(kat);
+            ukeRader = byggUkeStatistikk(alle);
+            mndRader = byggMndStatistikk(alle);
+            arRader  = byggArStatistikk(alle);
+            runOnUiThread(() -> visTab(tabLayout.getSelectedTabPosition()));
         });
     }
 
@@ -300,11 +337,16 @@ public class StatisticsActivity extends AppCompatActivity {
 
     private StatistikkRad byggRad(String etikett, List<WorkDay> vakter) {
         long totaltMin = 0;
+        long totalNormal = 0;
         int antall = 0;
         for (WorkDay v : vakter) {
-            if (v.endTime != null) { totaltMin += v.getDurationInMinutes(); antall++; }
+            if (v.endTime != null) {
+                totaltMin   += v.getDurationInMinutes();
+                totalNormal += SettingsActivity.getNormalMinutter(prefs, v.category);
+                antall++;
+            }
         }
-        long avvikMin = totaltMin - normalMinutter * antall;
+        long avvikMin = totaltMin - totalNormal;
         return new StatistikkRad(etikett, antall, totaltMin, avvikMin);
     }
 

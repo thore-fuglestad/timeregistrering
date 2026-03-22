@@ -5,19 +5,26 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -29,43 +36,80 @@ import java.util.concurrent.Executors;
 public class SettingsActivity extends AppCompatActivity {
 
     public static final String PREFS_NAME = "timeregistrering_prefs";
-    public static final String KEY_NORMAL_MINUTTER = "normal_arbeidstid_minutter";
+    public static final String KEY_NORMAL_MINUTTER        = "normal_arbeidstid_minutter";       // legacy
+    public static final String KEY_NORMAL_MINUTTER_JOBB   = "normal_arbeidstid_minutter_jobb";
+    public static final String KEY_NORMAL_MINUTTER_PRIVAT = "normal_arbeidstid_minutter_privat";
+    public static final String KEY_VALGT_KATEGORI         = "valgt_kategori_filter";
     public static final int STANDARD_MINUTTER = 480; // 8 timer
 
-    private TextInputEditText etNormalTimer, etTestMnd;
+    /** Returnerer normal arbeidstid (minutter) for en gitt kategori. */
+    public static int getNormalMinutter(android.content.SharedPreferences prefs, String category) {
+        if ("Privat".equals(category))
+            return prefs.getInt(KEY_NORMAL_MINUTTER_PRIVAT, STANDARD_MINUTTER);
+        return prefs.getInt(KEY_NORMAL_MINUTTER_JOBB, STANDARD_MINUTTER);
+    }
+
+    private TextInputEditText etNormalTimerJobb, etNormalTimerPrivat, etTestMnd;
+    private Spinner spinnerTestKategori, spinnerEksportKategori;
     private int testAr = -1, testMnd = -1;
+
+    private final ActivityResultLauncher<String> filVelger =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) importerFraUri(uri);
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        etNormalTimer = findViewById(R.id.etNormalTimer);
-        etTestMnd     = findViewById(R.id.etTestMnd);
+        etNormalTimerJobb   = findViewById(R.id.etNormalTimerJobb);
+        etNormalTimerPrivat = findViewById(R.id.etNormalTimerPrivat);
+        etTestMnd           = findViewById(R.id.etTestMnd);
+        spinnerTestKategori = findViewById(R.id.spinnerTestKategori);
+        ArrayAdapter<CharSequence> katAdapter = ArrayAdapter.createFromResource(
+                this, R.array.kategorier, android.R.layout.simple_spinner_item);
+        katAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerTestKategori.setAdapter(katAdapter);
+
+        spinnerEksportKategori = findViewById(R.id.spinnerEksportKategori);
+        ArrayAdapter<CharSequence> eksportAdapter = ArrayAdapter.createFromResource(
+                this, R.array.kategorier_filter, android.R.layout.simple_spinner_item);
+        eksportAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerEksportKategori.setAdapter(eksportAdapter);
         Button btnLagreTimer      = findViewById(R.id.btnLagreTimer);
         Button btnGenererTestdata  = findViewById(R.id.btnGenererTestdata);
         Button btnSlettTestdata    = findViewById(R.id.btnSlettTestdata);
         Button btnSlettAlt         = findViewById(R.id.btnSlettAlt);
         Button btnEksporterAlt     = findViewById(R.id.btnEksporterAlt);
         Button btnEksporterMnd     = findViewById(R.id.btnEksporterMnd);
+        Button btnImporter         = findViewById(R.id.btnImporter);
         ImageButton btnTilbake    = findViewById(R.id.btnTilbake);
 
         btnTilbake.setOnClickListener(v -> finish());
 
-        // Vis lagret verdi (standard 8 timer)
+        // Vis lagrede verdier
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int lagretMinutter = prefs.getInt(KEY_NORMAL_MINUTTER, STANDARD_MINUTTER);
-        etNormalTimer.setText(String.valueOf(lagretMinutter / 60));
+        etNormalTimerJobb.setText(String.valueOf(
+                prefs.getInt(KEY_NORMAL_MINUTTER_JOBB, STANDARD_MINUTTER) / 60));
+        etNormalTimerPrivat.setText(String.valueOf(
+                prefs.getInt(KEY_NORMAL_MINUTTER_PRIVAT, STANDARD_MINUTTER) / 60));
 
         btnLagreTimer.setOnClickListener(v -> {
-            String tekst = etNormalTimer.getText() != null ? etNormalTimer.getText().toString().trim() : "";
-            if (tekst.isEmpty()) {
-                Toast.makeText(this, "Fyll inn antall timer", Toast.LENGTH_SHORT).show();
+            String jobbTekst   = etNormalTimerJobb.getText()   != null ? etNormalTimerJobb.getText().toString().trim()   : "";
+            String privatTekst = etNormalTimerPrivat.getText() != null ? etNormalTimerPrivat.getText().toString().trim() : "";
+            if (jobbTekst.isEmpty() || privatTekst.isEmpty()) {
+                Toast.makeText(this, "Fyll inn timer for begge kategorier", Toast.LENGTH_SHORT).show();
                 return;
             }
-            int timer = Integer.parseInt(tekst);
-            prefs.edit().putInt(KEY_NORMAL_MINUTTER, timer * 60).apply();
-            Toast.makeText(this, "Normal arbeidstid satt til " + timer + " timer", Toast.LENGTH_SHORT).show();
+            int jobbTimer   = Integer.parseInt(jobbTekst);
+            int privatTimer = Integer.parseInt(privatTekst);
+            prefs.edit()
+                    .putInt(KEY_NORMAL_MINUTTER_JOBB,   jobbTimer   * 60)
+                    .putInt(KEY_NORMAL_MINUTTER_PRIVAT, privatTimer * 60)
+                    .apply();
+            Toast.makeText(this, "Lagret: Jobb " + jobbTimer + "t, Privat " + privatTimer + "t",
+                    Toast.LENGTH_SHORT).show();
         });
 
         etTestMnd.setOnClickListener(v -> {
@@ -99,17 +143,22 @@ public class SettingsActivity extends AppCompatActivity {
                     .show();
         });
 
-        btnEksporterAlt.setOnClickListener(v ->
-                Executors.newSingleThreadExecutor().execute(() -> {
-                    List<WorkDay> alle = AppDatabase.getInstance(this).workDayDao().getAllWorkDays();
-                    eksporter(alle, "vakter_alle");
-                }));
+        btnEksporterAlt.setOnClickListener(v -> {
+            String kat = eksportKategori();
+            Executors.newSingleThreadExecutor().execute(() -> {
+                WorkDayDao dao = AppDatabase.getInstance(this).workDayDao();
+                List<WorkDay> liste = kat == null ? dao.getAllWorkDays() : dao.getByCategory(kat);
+                String filnavn = kat == null ? "vakter_alle" : "vakter_alle_" + kat.toLowerCase();
+                eksporter(liste, filnavn);
+            });
+        });
 
         btnEksporterMnd.setOnClickListener(v -> {
             if (testAr < 0) {
                 Toast.makeText(this, "Velg en måned først", Toast.LENGTH_SHORT).show();
                 return;
             }
+            String kat = eksportKategori();
             int ar = testAr, mnd = testMnd;
             Executors.newSingleThreadExecutor().execute(() -> {
                 String startDato = String.format(Locale.getDefault(), "%04d-%02d-01", ar, mnd + 1);
@@ -117,10 +166,23 @@ public class SettingsActivity extends AppCompatActivity {
                 cal.set(ar, mnd, 1);
                 String sluttDato = String.format(Locale.getDefault(), "%04d-%02d-%02d",
                         ar, mnd + 1, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-                List<WorkDay> liste = AppDatabase.getInstance(this).workDayDao()
-                        .getByDateRange(startDato, sluttDato);
-                eksporter(liste, String.format(Locale.getDefault(), "vakter_%04d_%02d", ar, mnd + 1));
+                WorkDayDao dao = AppDatabase.getInstance(this).workDayDao();
+                List<WorkDay> liste = kat == null
+                        ? dao.getByDateRange(startDato, sluttDato)
+                        : dao.getByDateRangeAndCategory(startDato, sluttDato, kat);
+                String filnavn = String.format(Locale.getDefault(), "vakter_%04d_%02d", ar, mnd + 1)
+                        + (kat != null ? "_" + kat.toLowerCase() : "");
+                eksporter(liste, filnavn);
             });
+        });
+
+        btnImporter.setOnClickListener(v -> {
+            String kat = eksportKategori();
+            if (kat == null) {
+                Toast.makeText(this, "Velg Jobb eller Privat før import", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            filVelger.launch("*/*");
         });
 
         btnSlettAlt.setOnClickListener(v ->
@@ -138,21 +200,28 @@ public class SettingsActivity extends AppCompatActivity {
 
     }
 
+    /** Returnerer null hvis "Alle" er valgt, ellers kategoristrengen. */
+    private String eksportKategori() {
+        String valg = spinnerEksportKategori.getSelectedItem().toString();
+        return valg.equals("Alle") ? null : valg;
+    }
+
     private void bekreftTestdata() {
         String mndNavn = String.format(Locale.getDefault(), "%02d.%04d", testMnd + 1, testAr);
         new AlertDialog.Builder(this)
                 .setTitle("Generer testdata")
                 .setMessage("Vil du generere vakter for alle hverdager i " + mndNavn + "?")
-                .setPositiveButton("Generer", (dialog, which) -> genererTestdata())
+                .setPositiveButton("Generer", (dialog, which) ->
+                        genererTestdata(spinnerTestKategori.getSelectedItem().toString()))
                 .setNegativeButton("Avbryt", null)
                 .show();
     }
 
-    private void genererTestdata() {
+    private void genererTestdata(String kategori) {
         int ar  = testAr;
         int mnd = testMnd;
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        int normalMinutter = prefs.getInt(KEY_NORMAL_MINUTTER, STANDARD_MINUTTER);
+        int normalMinutter = getNormalMinutter(prefs, kategori);
 
         Executors.newSingleThreadExecutor().execute(() -> {
             Random rnd = new Random();
@@ -186,6 +255,7 @@ public class SettingsActivity extends AppCompatActivity {
                 vakt.startTime        = startMs;
                 vakt.endTime          = sluttMs;
                 vakt.manualAdjustment = 0;
+                vakt.category         = kategori;
                 dao.insert(vakt);
                 antall++;
             }
@@ -226,6 +296,65 @@ public class SettingsActivity extends AppCompatActivity {
         } catch (IOException e) {
             runOnUiThread(() -> Toast.makeText(this, "Eksport feilet: " + e.getMessage(), Toast.LENGTH_LONG).show());
         }
+    }
+
+    private void importerFraUri(Uri uri) {
+        String kategori = spinnerEksportKategori.getSelectedItem().toString();
+        Executors.newSingleThreadExecutor().execute(() -> {
+            int importert = 0, hoppetOver = 0;
+            SimpleDateFormat tidSdf = new SimpleDateFormat("HH:mm", new Locale("no", "NO"));
+            try {
+                InputStream is = getContentResolver().openInputStream(uri);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                String linje;
+                boolean forsteRad = true;
+                WorkDayDao dao = AppDatabase.getInstance(this).workDayDao();
+
+                while ((linje = reader.readLine()) != null) {
+                    if (forsteRad) { forsteRad = false; continue; } // hopp over header
+                    if (linje.trim().isEmpty()) continue;
+
+                    String[] deler = linje.split(";");
+                    if (deler.length < 3) { hoppetOver++; continue; }
+
+                    try {
+                        String dato      = deler[0].trim();
+                        String startTid  = deler[1].trim();
+                        String sluttTid  = deler.length > 2 ? deler[2].trim() : "";
+                        long justeringMin = deler.length > 4 ? Long.parseLong(deler[4].trim()) : 0;
+
+                        // Bygg starttidspunkt fra dato + klokkeslett
+                        SimpleDateFormat datoTidSdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", new Locale("no", "NO"));
+                        long startMs = datoTidSdf.parse(dato + " " + startTid).getTime();
+                        Long sluttMs = sluttTid.isEmpty() ? null
+                                : datoTidSdf.parse(dato + " " + sluttTid).getTime();
+
+                        WorkDay vakt = new WorkDay();
+                        vakt.date             = dato;
+                        vakt.startTime        = startMs;
+                        vakt.endTime          = sluttMs;
+                        vakt.manualAdjustment = justeringMin;
+                        vakt.category         = kategori;
+                        dao.insert(vakt);
+                        importert++;
+                    } catch (Exception e) {
+                        hoppetOver++;
+                    }
+                }
+                reader.close();
+
+                int ferdigImportert = importert;
+                int ferdigHoppet = hoppetOver;
+                runOnUiThread(() -> Toast.makeText(this,
+                        ferdigImportert + " vakter importert" +
+                        (ferdigHoppet > 0 ? ", " + ferdigHoppet + " hoppet over" : ""),
+                        Toast.LENGTH_LONG).show());
+
+            } catch (Exception e) {
+                runOnUiThread(() -> Toast.makeText(this,
+                        "Import feilet: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        });
     }
 
     private void slettManed() {

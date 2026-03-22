@@ -7,7 +7,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,12 +42,13 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView tvDato, tvKlokke, tvSekunder;
     private Button btnToggleDay;
+    private Spinner categorySpinner;
 
     private MaterialCardView cardFilterDag, cardFilterUke, cardFilterMnd, cardFilterAr;
-    private TextView tvPeriodeDag, tvSumDag;
-    private TextView tvPeriodeUke, tvSumUke;
-    private TextView tvPeriodeMnd, tvSumMnd;
-    private TextView tvPeriodeAr,  tvSumAr;
+    private TextView tvPeriodeDag, tvSumDag, tvAvvikDag;
+    private TextView tvPeriodeUke, tvSumUke, tvAvvikUke;
+    private TextView tvPeriodeMnd, tvSumMnd, tvAvvikMnd;
+    private TextView tvPeriodeAr,  tvSumAr,  tvAvvikAr;
 
     private WorkDayAdapter adapter;
 
@@ -68,16 +72,34 @@ public class MainActivity extends AppCompatActivity {
         tvKlokke   = findViewById(R.id.tvKlokke);
         tvSekunder = findViewById(R.id.tvSekunder);
         btnToggleDay = findViewById(R.id.btnToggleDay);
+        categorySpinner = findViewById(R.id.categorySpinner);
+        ArrayAdapter<CharSequence> spinnerAdapter = ArrayAdapter.createFromResource(
+                this, R.array.kategorier_filter, android.R.layout.simple_spinner_item);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(spinnerAdapter);
+
+        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
+                getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE).edit()
+                        .putString(SettingsActivity.KEY_VALGT_KATEGORI, parent.getItemAtPosition(position).toString())
+                        .apply();
+                lastInnData();
+                oppdaterFilterknapper();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
         Button btnManualEntry = findViewById(R.id.btnManualEntry);
 
         cardFilterDag = findViewById(R.id.cardFilterDag);
         cardFilterUke = findViewById(R.id.cardFilterUke);
         cardFilterMnd = findViewById(R.id.cardFilterMnd);
         cardFilterAr  = findViewById(R.id.cardFilterAr);
-        tvPeriodeDag = findViewById(R.id.tvPeriodeDag); tvSumDag = findViewById(R.id.tvSumDag);
-        tvPeriodeUke = findViewById(R.id.tvPeriodeUke); tvSumUke = findViewById(R.id.tvSumUke);
-        tvPeriodeMnd = findViewById(R.id.tvPeriodeMnd); tvSumMnd = findViewById(R.id.tvSumMnd);
-        tvPeriodeAr  = findViewById(R.id.tvPeriodeAr);  tvSumAr  = findViewById(R.id.tvSumAr);
+        tvPeriodeDag = findViewById(R.id.tvPeriodeDag); tvSumDag = findViewById(R.id.tvSumDag); tvAvvikDag = findViewById(R.id.tvAvvikDag);
+        tvPeriodeUke = findViewById(R.id.tvPeriodeUke); tvSumUke = findViewById(R.id.tvSumUke); tvAvvikUke = findViewById(R.id.tvAvvikUke);
+        tvPeriodeMnd = findViewById(R.id.tvPeriodeMnd); tvSumMnd = findViewById(R.id.tvSumMnd); tvAvvikMnd = findViewById(R.id.tvAvvikMnd);
+        tvPeriodeAr  = findViewById(R.id.tvPeriodeAr);  tvSumAr  = findViewById(R.id.tvSumAr);  tvAvvikAr  = findViewById(R.id.tvAvvikAr);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
 
@@ -124,9 +146,18 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Sync kategori-spinner — fanger opp endringer gjort fra statistikkbildet
+        String lagretKat = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE)
+                .getString(SettingsActivity.KEY_VALGT_KATEGORI, "Alle");
+        ArrayAdapter<CharSequence> adapter = (ArrayAdapter<CharSequence>) categorySpinner.getAdapter();
+        int pos = adapter.getPosition(lagretKat);
+        if (pos >= 0 && pos != categorySpinner.getSelectedItemPosition()) {
+            categorySpinner.setSelection(pos); // listener vil kalle lastInnData + oppdaterFilterknapper
+        } else {
+            oppdaterFilterknapper();
+            lastInnData();
+        }
         oppdaterKnappTekst();
-        oppdaterFilterknapper();
-        lastInnData();
         startKlokke();
         startOppdatering();
     }
@@ -227,28 +258,43 @@ public class MainActivity extends AppCompatActivity {
         String arLabel  = String.valueOf(arCal.get(Calendar.YEAR));
 
         Executors.newSingleThreadExecutor().execute(() -> {
-            String dagSum = formaterSum(hentListe("dag"));
-            String ukeSum = formaterSum(hentListe("uke"));
-            String mndSum = formaterSum(hentListe("mnd"));
-            String arSum  = formaterSum(hentListe("ar"));
+            List<WorkDay> dagListe = hentListe("dag");
+            List<WorkDay> ukeListe = hentListe("uke");
+            List<WorkDay> mndListe = hentListe("mnd");
+            List<WorkDay> arListe  = hentListe("ar");
+            String dagSum = formaterSum(dagListe); long dagAvvik = beregnAvvik(dagListe);
+            String ukeSum = formaterSum(ukeListe); long ukeAvvik = beregnAvvik(ukeListe);
+            String mndSum = formaterSum(mndListe); long mndAvvik = beregnAvvik(mndListe);
+            String arSum  = formaterSum(arListe);  long arAvvik  = beregnAvvik(arListe);
             runOnUiThread(() -> {
-                tvPeriodeDag.setText(dagLabel); tvSumDag.setText(dagSum);
-                tvPeriodeUke.setText(ukeLabel); tvSumUke.setText(ukeSum);
-                tvPeriodeMnd.setText(mndLabel); tvSumMnd.setText(mndSum);
-                tvPeriodeAr.setText(arLabel);   tvSumAr.setText(arSum);
+                tvPeriodeDag.setText(dagLabel); tvSumDag.setText(dagSum); visAvvik(tvAvvikDag, dagAvvik);
+                tvPeriodeUke.setText(ukeLabel); tvSumUke.setText(ukeSum); visAvvik(tvAvvikUke, ukeAvvik);
+                tvPeriodeMnd.setText(mndLabel); tvSumMnd.setText(mndSum); visAvvik(tvAvvikMnd, mndAvvik);
+                tvPeriodeAr.setText(arLabel);   tvSumAr.setText(arSum);   visAvvik(tvAvvikAr,  arAvvik);
                 oppdaterKortUtseende();
             });
         });
     }
 
+    // Returnerer null hvis "Alle" er valgt, ellers kategori-strengen
+    private String valgtKategoriFilter() {
+        String valg = categorySpinner.getSelectedItem().toString();
+        return valg.equals("Alle") ? null : valg;
+    }
+
     private List<WorkDay> hentListe(String filter) {
+        String kat = valgtKategoriFilter();
+        WorkDayDao dao = AppDatabase.getInstance(this).workDayDao();
         if (filter.equals("dag")) {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_MONTH, dagOffset);
-            return AppDatabase.getInstance(this).workDayDao().getByDate(datoFormat.format(cal.getTime()));
+            String dato = datoFormat.format(cal.getTime());
+            return kat == null ? dao.getByDate(dato) : dao.getByDateAndCategory(dato, kat);
         }
         String[] range = datoIntervall(filter);
-        return AppDatabase.getInstance(this).workDayDao().getByDateRange(range[0], range[1]);
+        return kat == null
+                ? dao.getByDateRange(range[0], range[1])
+                : dao.getByDateRangeAndCategory(range[0], range[1], kat);
     }
 
     private String formaterSum(List<WorkDay> liste) {
@@ -261,6 +307,31 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return (totalt / 60) + "t " + (totalt % 60) + "min";
+    }
+
+    private long beregnAvvik(List<WorkDay> liste) {
+        SharedPreferences prefs = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE);
+        long avvik = 0;
+        for (WorkDay dag : liste) {
+            if (dag.endTime != null) {
+                avvik += dag.getDurationInMinutes()
+                        - SettingsActivity.getNormalMinutter(prefs, dag.category);
+            }
+        }
+        return avvik;
+    }
+
+    private void visAvvik(TextView tv, long avvikMin) {
+        if (avvikMin == 0) {
+            tv.setText("");
+            return;
+        }
+        long abs = Math.abs(avvikMin);
+        String tekst = (avvikMin > 0 ? "+" : "-") + (abs / 60) + "t " + (abs % 60) + "min";
+        tv.setText(tekst);
+        tv.setTextColor(avvikMin > 0
+                ? Color.parseColor("#A5D6A7")   // lys grønn (lesbar på farget bakgrunn)
+                : Color.parseColor("#EF9A9A"));  // lys rød
     }
 
     private String[] datoIntervall(String filter) {
@@ -304,8 +375,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private List<WorkDay> hentAktivListe() {
+        String kat = valgtKategoriFilter();
         if (aktivtFilter == null) {
-            return AppDatabase.getInstance(this).workDayDao().getAllWorkDays();
+            return kat == null
+                    ? AppDatabase.getInstance(this).workDayDao().getAllWorkDays()
+                    : AppDatabase.getInstance(this).workDayDao().getByCategory(kat);
         } else {
             return hentListe(aktivtFilter);
         }
@@ -340,12 +414,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startVakt() {
+        String kat = valgtKategoriFilter();
+        if (kat == null) {
+            Toast.makeText(this, "Velg Jobb eller Privat før du starter vakt", Toast.LENGTH_SHORT).show();
+            return;
+        }
         long now = System.currentTimeMillis();
         WorkDay workDay = new WorkDay();
         workDay.date = datoFormat.format(new Date(now));
         workDay.startTime = now;
         workDay.endTime = null;
         workDay.manualAdjustment = 0;
+        workDay.category = kat;
 
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase.getInstance(this).workDayDao().insert(workDay);

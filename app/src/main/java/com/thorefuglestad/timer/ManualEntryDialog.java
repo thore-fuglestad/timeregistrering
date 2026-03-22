@@ -6,7 +6,9 @@ import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -29,6 +31,7 @@ public class ManualEntryDialog extends DialogFragment {
     }
 
     private EditText etDate, etStartTime, etEndTime, etAdjustment;
+    private Spinner spinnerKategori;
 
     private int selectedYear, selectedMonth, selectedDay;
     private int startHour = -1, startMinute = -1;
@@ -43,6 +46,11 @@ public class ManualEntryDialog extends DialogFragment {
         etStartTime = view.findViewById(R.id.etStartTime);
         etEndTime = view.findViewById(R.id.etEndTime);
         etAdjustment = view.findViewById(R.id.etAdjustment);
+        spinnerKategori = view.findViewById(R.id.spinnerKategori);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                requireContext(), R.array.kategorier, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerKategori.setAdapter(adapter);
 
         Calendar now = Calendar.getInstance();
         selectedYear = now.get(Calendar.YEAR);
@@ -119,6 +127,7 @@ public class ManualEntryDialog extends DialogFragment {
         workDay.startTime = start.getTimeInMillis();
         workDay.endTime = end.getTimeInMillis();
         workDay.manualAdjustment = justering;
+        workDay.category = spinnerKategori.getSelectedItem().toString();
 
         // Lagre i databasen, og varsle MainActivity etterpå slik at summene oppdateres
         Executors.newSingleThreadExecutor().execute(() -> {

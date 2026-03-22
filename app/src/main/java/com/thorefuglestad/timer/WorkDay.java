@@ -23,6 +23,9 @@ public class WorkDay {
     // Manuell justering i minutter (kan være positiv eller negativ)
     public long manualAdjustment;
 
+    // Kategori, f.eks. "Jobb" eller "Privat"
+    public String category;
+
     // Regner ut total varighet i minutter
     // Returnerer 0 hvis vakten ikke er avsluttet ennå
     public long getDurationInMinutes() {

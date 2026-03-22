@@ -7,7 +7,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 // Registrerer hvilke entiteter databasen inneholder, og setter versjonsnummeret
-@Database(entities = {WorkDay.class}, version = 1, exportSchema = false)
+@Database(entities = {WorkDay.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     // Abstrakt metode Room implementerer automatisk
@@ -27,6 +27,7 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "timeregistrering_database"
                             )
+                            .fallbackToDestructiveMigration()
                             .build();
                 }
             }

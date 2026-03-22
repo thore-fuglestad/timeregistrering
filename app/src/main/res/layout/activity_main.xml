@@ -98,6 +98,15 @@
         android:background="#FFFFFF"
         android:padding="16dp">
 
+        <!-- Kategori-velger -->
+        <Spinner
+            android:id="@+id/categorySpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:entries="@array/kategorier_filter"
+            android:background="@drawable/spinner_background"/>
+
         <!-- Stor Start/Stopp-knapp -->
         <Button
             android:id="@+id/btnToggleDay"
@@ -131,8 +140,6 @@
                 app:cardCornerRadius="12dp" app:cardElevation="2dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical" android:padding="6dp" android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="DAG" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:gravity="center_vertical">
                         <TextView android:id="@+id/btnPrevDag" android:layout_width="wrap_content"
@@ -152,6 +159,8 @@
                     <TextView android:id="@+id/tvSumDag" android:layout_width="wrap_content"
                         android:layout_height="wrap_content" android:textSize="11sp"
                         android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                    <TextView android:id="@+id/tvAvvikDag" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp" android:text=""/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -164,8 +173,6 @@
                 app:cardCornerRadius="12dp" app:cardElevation="2dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical" android:padding="6dp" android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="UKE" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:gravity="center_vertical">
                         <TextView android:id="@+id/btnPrevUke" android:layout_width="wrap_content"
@@ -185,6 +192,8 @@
                     <TextView android:id="@+id/tvSumUke" android:layout_width="wrap_content"
                         android:layout_height="wrap_content" android:textSize="11sp"
                         android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                    <TextView android:id="@+id/tvAvvikUke" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp" android:text=""/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -197,8 +206,6 @@
                 app:cardCornerRadius="12dp" app:cardElevation="2dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical" android:padding="6dp" android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="MND" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:gravity="center_vertical">
                         <TextView android:id="@+id/btnPrevMnd" android:layout_width="wrap_content"
@@ -218,6 +225,8 @@
                     <TextView android:id="@+id/tvSumMnd" android:layout_width="wrap_content"
                         android:layout_height="wrap_content" android:textSize="11sp"
                         android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                    <TextView android:id="@+id/tvAvvikMnd" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp" android:text=""/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -230,8 +239,6 @@
                 app:cardCornerRadius="12dp" app:cardElevation="2dp">
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical" android:padding="6dp" android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:text="ÅR" android:textSize="9sp" android:textColor="#CCFFFFFF"/>
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:orientation="horizontal" android:gravity="center_vertical">
                         <TextView android:id="@+id/btnPrevAr" android:layout_width="wrap_content"
@@ -251,6 +258,8 @@
                     <TextView android:id="@+id/tvSumAr" android:layout_width="wrap_content"
                         android:layout_height="wrap_content" android:textSize="11sp"
                         android:textStyle="bold" android:text="-" android:textColor="#FFFFFF"/>
+                    <TextView android:id="@+id/tvAvvikAr" android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" android:textSize="11sp" android:text=""/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

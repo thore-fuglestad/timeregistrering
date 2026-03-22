@@ -54,18 +54,34 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="8dp">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Timer (standard: 8)"
+                android:hint="Jobb (timer)"
+                app:endIconMode="none"
+                android:layout_marginEnd="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNormalTimerJobb"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Privat (timer)"
                 app:endIconMode="none"
                 android:layout_marginEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etNormalTimer"
+                    android:id="@+id/etNormalTimerPrivat"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"/>
@@ -96,7 +112,15 @@
             android:layout_height="wrap_content"
             android:text="Genererer vakter for alle hverdager i valgt måned med tilfeldig varighet rundt normal arbeidstid."
             android:textSize="13sp"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="12dp"/>
+
+        <Spinner
+            android:id="@+id/spinnerTestKategori"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/kategorier"
+            android:background="@drawable/spinner_background"
+            android:layout_marginBottom="12dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -141,10 +165,11 @@
         </LinearLayout>
 
         <!-- Seksjon: eksport -->
+        <!-- Seksjon: eksport og import -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Eksporter data"
+            android:text="Eksport / Import"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginTop="24dp"
@@ -153,30 +178,52 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Eksporter alle registrerte vakter som en CSV-fil."
+            android:text="Eksporter eller importer vakter som CSV-fil."
             android:textSize="13sp"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="8dp"/>
+
+        <Spinner
+            android:id="@+id/spinnerEksportKategori"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/kategorier_filter"
+            android:background="@drawable/spinner_background"
+            android:layout_marginBottom="12dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <Button
                 android:id="@+id/btnEksporterAlt"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Eksporter alt"
-                android:layout_marginEnd="8dp"/>
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#00695C"
+                android:layout_marginEnd="4dp"/>
 
             <Button
                 android:id="@+id/btnEksporterMnd"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Eksporter måned"
-                style="@style/Widget.App.Button.Outlined"/>
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#00695C"
+                android:layout_marginEnd="4dp"/>
+
+            <Button
+                android:id="@+id/btnImporter"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="Importer"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#E65100"/>
 
         </LinearLayout>
 

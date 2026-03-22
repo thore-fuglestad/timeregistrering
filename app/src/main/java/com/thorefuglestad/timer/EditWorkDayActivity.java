@@ -3,8 +3,10 @@ package com.thorefuglestad.timer;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -19,6 +21,7 @@ import java.util.concurrent.Executors;
 public class EditWorkDayActivity extends AppCompatActivity {
 
     private EditText etDato, etStartTid, etSluttTid, etJustering;
+    private Spinner spinnerKategori;
 
     // Arbeidsdagen som redigeres, lastet fra databasen
     private WorkDay workDay;
@@ -37,6 +40,11 @@ public class EditWorkDayActivity extends AppCompatActivity {
         etStartTid = findViewById(R.id.etStartTid);
         etSluttTid = findViewById(R.id.etSluttTid);
         etJustering = findViewById(R.id.etJustering);
+        spinnerKategori = findViewById(R.id.spinnerKategori);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+                this, R.array.kategorier, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerKategori.setAdapter(adapter);
         Button btnLagre = findViewById(R.id.btnLagre);
         Button btnSlett = findViewById(R.id.btnSlett);
 
@@ -109,6 +117,14 @@ public class EditWorkDayActivity extends AppCompatActivity {
         // Justering
         etJustering.setText(String.valueOf(workDay.manualAdjustment));
 
+        // Kategori — forhåndsvelg hvis satt
+        if (workDay.category != null) {
+            ArrayAdapter<CharSequence> spinnerAdapter =
+                    (ArrayAdapter<CharSequence>) spinnerKategori.getAdapter();
+            int pos = spinnerAdapter.getPosition(workDay.category);
+            if (pos >= 0) spinnerKategori.setSelection(pos);
+        }
+
         // Klikk-lyttere for dato og klokkeslett
         etDato.setOnClickListener(v -> {
             new DatePickerDialog(this, (picker, year, month, day) -> {
@@ -155,6 +171,7 @@ public class EditWorkDayActivity extends AppCompatActivity {
 
         String justeringTekst = etJustering.getText().toString().trim();
         workDay.manualAdjustment = justeringTekst.isEmpty() ? 0 : Long.parseLong(justeringTekst);
+        workDay.category = spinnerKategori.getSelectedItem().toString();
 
         Executors.newSingleThreadExecutor().execute(() -> {
             AppDatabase.getInstance(this).workDayDao().update(workDay);
